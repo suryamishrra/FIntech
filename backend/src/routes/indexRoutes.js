@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 
-// Basic health check route: GET /api/health
+const authRoutes = require("./authRoutes");
+const expenseRoutes = require("./expenseRoutes");
+
+// Health route
 router.get('/health', (req, res) => {
   res.status(200).json({ 
     success: true, 
@@ -9,5 +12,11 @@ router.get('/health', (req, res) => {
     database: 'SQLite configured'
   });
 });
+
+// Auth routes
+router.use("/auth", authRoutes);
+
+// Expense routes
+router.use("/expenses", expenseRoutes);
 
 module.exports = router;
