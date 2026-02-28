@@ -1,4 +1,5 @@
 const prisma = require("../config/prisma");
+const { success } = require("../utils/response");
 
 // Add Expense
 exports.addExpense = async (req, res, next) => {
@@ -35,16 +36,62 @@ if (!category || category.trim() === "") {
 // Get All Expenses (User Specific)
 exports.getExpenses = async (req, res, next) => {
   try {
-    const expenses = await prisma.expense.findMany({
+    const userId = req.user.userId;
+
+    // Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    if (page <= 0 || limit <= 0) {
+      return res.status(400).json({
+        message: "Page and limit must be positive numbers",
+      });
+    }
+
+    const skip = (page - 1) * limit;
+
+    // Date Filtering
+    const { startDate, endDate } = req.query;
+
+    let dateFilter = {};
+
+    if (startDate && endDate) {
+      dateFilter = {
+        createdAt: {
+          gte: new Date(startDate),
+          lte: new Date(endDate),
+        },
+      };
+    }
+
+    // Total count for frontend pagination
+    const totalCount = await prisma.expense.count({
       where: {
-        userId: req.user.userId,
-      },
-      orderBy: {
-        date: "desc",
+        userId,
+        ...dateFilter,
       },
     });
 
-    res.json(expenses);
+    const expenses = await prisma.expense.findMany({
+      where: {
+        userId,
+        ...dateFilter,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip,
+      take: limit,
+    });
+
+    return success(res, {
+  page,
+  limit,
+  totalCount,
+  totalPages: Math.ceil(totalCount / limit),
+  expenses,
+});
+
   } catch (error) {
     next(error);
   }
