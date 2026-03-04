@@ -7,6 +7,7 @@ const budgetRoutes = require("./budgetRoutes");
 const bankRoutes = require("./bankRoutes");
 const creditCardRoutes = require("./creditCardRoutes");
 const financeRoutes = require("./financeRoutes");
+const aiRoutes = require("./aiRoutes");
 
 // Health route
 router.get('/health', (req, res) => {
@@ -34,5 +35,8 @@ router.use("/cards", creditCardRoutes);
 
 //Finance summary routes
 router.use("/finance", financeRoutes);
+
+//AI routes
+router.use("/ai", aiRoutes);
 
 module.exports = router;
